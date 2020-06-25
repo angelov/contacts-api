@@ -1,10 +1,15 @@
 package me.angelovdejan.contacts.api;
 
-import io.swagger.annotations.Api;
+import io.swagger.annotations.*;
 import me.angelovdejan.contacts.Contact;
 import me.angelovdejan.contacts.ContactsRepositoryInterface;
 import me.angelovdejan.contacts.api.requests.CreateContactRequest;
 
+import me.angelovdejan.contacts.api.responses.ItemsList;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -41,12 +46,17 @@ public class ContactsController {
     }
 
     @GetMapping(path = "/")
-    public List<Contact> index() {
-        List<Contact> allContacts = new ArrayList<>();
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Listing the contacts.")
+    })
+    public ResponseEntity<ItemsList<Contact>> index(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer count
+    ) {
+        Pageable pageable = PageRequest.of(page, count);
+        Page pageResult = this.contactsRepository.findAll(pageable);
 
-        this.contactsRepository.findAll().forEach(allContacts::add);
-
-        return allContacts;
+        return ResponseEntity.ok(ItemsList.fromPage(pageResult));
     }
 
     @DeleteMapping("/{id}")
