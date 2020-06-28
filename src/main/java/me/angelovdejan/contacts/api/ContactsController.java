@@ -3,13 +3,16 @@ package me.angelovdejan.contacts.api;
 import io.swagger.annotations.*;
 import me.angelovdejan.contacts.Contact;
 import me.angelovdejan.contacts.ContactsRepositoryInterface;
+import me.angelovdejan.contacts.User;
 import me.angelovdejan.contacts.api.requests.CreateContactRequest;
 
+import me.angelovdejan.contacts.api.responses.CreatedContactResponse;
 import me.angelovdejan.contacts.api.responses.ItemsList;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -26,12 +29,14 @@ public class ContactsController {
     }
 
     @PostMapping(path = "/")
-    public Map<String, String> createContact(@RequestBody CreateContactRequest request) {
+    public ResponseEntity<CreatedContactResponse> createContact(@RequestBody CreateContactRequest request) {
 
         String id = UUID.randomUUID().toString();
+        User owner = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         Contact contact = new Contact(
                 id,
+                owner,
                 request.name,
                 request.phone,
                 request.email
@@ -39,10 +44,7 @@ public class ContactsController {
 
         this.contactsRepository.save(contact);
 
-        Map<String, String> response = new HashMap<>();
-        response.put("id", id);
-
-        return response;
+        return ResponseEntity.ok(new CreatedContactResponse(id));
     }
 
     @GetMapping(path = "/")
@@ -53,8 +55,10 @@ public class ContactsController {
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer count
     ) {
-        Pageable pageable = PageRequest.of(page, count);
-        Page pageResult = this.contactsRepository.findAll(pageable);
+        Pageable pageable = PageRequest.of(page - 1, count);
+        User owner = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        Page<Contact> pageResult = this.contactsRepository.findByOwnerPaginated(owner, pageable);
 
         return ResponseEntity.ok(ItemsList.fromPage(pageResult));
     }

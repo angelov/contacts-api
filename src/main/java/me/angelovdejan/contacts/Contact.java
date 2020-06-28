@@ -1,8 +1,8 @@
 package me.angelovdejan.contacts;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import javax.persistence.*;
 
 @Entity
 public class Contact {
@@ -20,11 +20,17 @@ public class Contact {
     @Column(name = "email_address")
     private String emailAddress;
 
-    private Contact() {
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "owner_id", nullable = false)
+    @JsonIgnore
+    private User owner;
+
+    public Contact() {
     }
 
-    public Contact(String id, String name, String phoneNumber, String emailAddress) {
+    public Contact(String id, User owner, String name, String phoneNumber, String emailAddress) {
         this.id = id;
+        this.owner = owner;
         this.name = name;
         this.phoneNumber = phoneNumber;
         this.emailAddress = emailAddress;
@@ -44,5 +50,9 @@ public class Contact {
 
     public String getEmailAddress() {
         return emailAddress;
+    }
+
+    public User getOwner() {
+        return owner;
     }
 }
