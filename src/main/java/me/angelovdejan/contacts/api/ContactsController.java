@@ -6,6 +6,7 @@ import me.angelovdejan.contacts.ContactsRepositoryInterface;
 import me.angelovdejan.contacts.User;
 import me.angelovdejan.contacts.api.requests.CreateContactRequest;
 
+import me.angelovdejan.contacts.api.requests.UpdateContactRequest;
 import me.angelovdejan.contacts.api.responses.CreatedContactResponse;
 import me.angelovdejan.contacts.api.responses.ItemsList;
 import org.springframework.data.domain.Page;
@@ -61,6 +62,26 @@ public class ContactsController {
         Page<Contact> pageResult = this.contactsRepository.findByOwnerPaginated(owner, pageable);
 
         return ResponseEntity.ok(ItemsList.fromPage(pageResult));
+    }
+
+    @PutMapping(path = "/{id}")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Updating a contact.")
+    })
+    public void index(@PathVariable String id, @RequestBody UpdateContactRequest request) {
+        Optional<Contact> result = this.contactsRepository.findById(id);
+
+        if (result.isEmpty()) {
+            throw new ContactNotFoundException();
+        }
+
+        Contact contact = result.get();
+
+        contact.setName(request.name);
+        contact.setPhoneNumber(request.phone);
+        contact.setEmailAddress(request.email);
+
+        this.contactsRepository.save(contact);
     }
 
     @DeleteMapping("/{id}")
