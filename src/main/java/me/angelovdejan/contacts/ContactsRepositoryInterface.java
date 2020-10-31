@@ -13,4 +13,8 @@ public interface ContactsRepositoryInterface extends
 
     @Query("select c from Contact c where c.owner = :owner")
     Page<Contact> findByOwnerPaginated(@Param("owner") User $owner, Pageable pageable);
+
+
+    @Query("select c from Contact c where c.owner = :owner and c.favorite = true")
+    Page<Contact> favoriteByOwner(@Param("owner") User $owner, Pageable pageable);
 }

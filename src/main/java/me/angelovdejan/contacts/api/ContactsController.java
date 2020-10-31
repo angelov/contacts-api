@@ -6,6 +6,7 @@ import me.angelovdejan.contacts.ContactsRepositoryInterface;
 import me.angelovdejan.contacts.User;
 import me.angelovdejan.contacts.api.requests.CreateContactRequest;
 
+import me.angelovdejan.contacts.api.requests.FavoriteContactRequest;
 import me.angelovdejan.contacts.api.requests.UpdateContactRequest;
 import me.angelovdejan.contacts.api.responses.CreatedContactResponse;
 import me.angelovdejan.contacts.api.responses.ItemsList;
@@ -42,6 +43,8 @@ public class ContactsController {
                 request.phone,
                 request.email
         );
+
+        contact.setFavorite(request.favorite);
 
         this.contactsRepository.save(contact);
 
@@ -81,6 +84,10 @@ public class ContactsController {
         contact.setPhoneNumber(request.phone);
         contact.setEmailAddress(request.email);
 
+        if (request.favorite != null) {
+            contact.setFavorite(request.favorite);
+        }
+
         this.contactsRepository.save(contact);
     }
 
@@ -91,5 +98,35 @@ public class ContactsController {
         }
 
         this.contactsRepository.deleteById(id);
+    }
+
+    @PostMapping(path = "/{id}/favorite")
+    @ApiOperation(value = "Favoriting/Unfavoriting a contact.")
+    public void favoriteContact(@PathVariable String id, @RequestBody FavoriteContactRequest request) {
+        Optional<Contact> result = this.contactsRepository.findById(id);
+
+        if (result.isEmpty()) {
+            throw new ContactNotFoundException();
+        }
+
+        Contact contact = result.get();
+
+        contact.setFavorite(request.favorite);
+
+        this.contactsRepository.save(contact);
+    }
+
+    @GetMapping(path = "/favorite")
+    @ApiOperation(value = "Listing the user's favorite contacts.")
+    public ResponseEntity<ItemsList<Contact>> favoriteContacts(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer count
+    ) {
+        Pageable pageable = PageRequest.of(page - 1, count);
+        User owner = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        Page<Contact> pageResult = this.contactsRepository.favoriteByOwner(owner, pageable);
+
+        return ResponseEntity.ok(ItemsList.fromPage(pageResult));
     }
 }

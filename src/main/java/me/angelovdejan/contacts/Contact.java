@@ -25,6 +25,9 @@ public class Contact {
     @JsonIgnore
     private User owner;
 
+    @Column(name = "favorite")
+    private Boolean favorite;
+
     public Contact() {
     }
 
@@ -34,6 +37,7 @@ public class Contact {
         this.name = name;
         this.phoneNumber = phoneNumber;
         this.emailAddress = emailAddress;
+        this.favorite = false;
     }
 
     public String getId() {
@@ -66,5 +70,13 @@ public class Contact {
 
     public User getOwner() {
         return owner;
+    }
+
+    public Boolean isFavorite() {
+        return favorite;
+    }
+
+    public void setFavorite(Boolean favorite) {
+        this.favorite = favorite;
     }
 }
