@@ -3,6 +3,8 @@ package me.angelovdejan.contacts;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 public class Contact {
@@ -27,6 +29,10 @@ public class Contact {
 
     @Column(name = "favorite")
     private Boolean favorite;
+
+    @ManyToMany(mappedBy = "contacts", fetch = FetchType.LAZY)
+    @JsonIgnore
+    private Set<Category> categories = new HashSet<>();
 
     public Contact() {
     }
@@ -78,5 +84,17 @@ public class Contact {
 
     public void setFavorite(Boolean favorite) {
         this.favorite = favorite;
+    }
+
+    public Set<Category> getCategories() {
+        return this.categories;
+    }
+
+    public void clearCategories() {
+        this.categories.clear();
+    }
+
+    public void addCategory(Category category) {
+        this.categories.add(category);
     }
 }

@@ -7,6 +7,8 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 public interface ContactsRepositoryInterface extends
         CrudRepository<Contact, String>,
         PagingAndSortingRepository<Contact, String> {
@@ -17,4 +19,6 @@ public interface ContactsRepositoryInterface extends
 
     @Query("select c from Contact c where c.owner = :owner and c.favorite = true")
     Page<Contact> favoriteByOwner(@Param("owner") User $owner, Pageable pageable);
+
+    List<Contact> findByIdIn(List<String> ids);
 }

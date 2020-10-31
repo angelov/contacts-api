@@ -35,4 +35,12 @@ public class ItemsList<T> {
                 page.getTotalPages() == 0 ? 1 : page.getTotalPages()
         );
     }
+
+    public static <A> ItemsList<A> fromItems(List<A> items) {
+        return new ItemsList<A>(
+                items,
+                1,
+                1
+        );
+    }
 }

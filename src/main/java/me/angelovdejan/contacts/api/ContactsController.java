@@ -1,12 +1,12 @@
 package me.angelovdejan.contacts.api;
 
 import io.swagger.annotations.*;
+import me.angelovdejan.contacts.*;
 import me.angelovdejan.contacts.Contact;
-import me.angelovdejan.contacts.ContactsRepositoryInterface;
-import me.angelovdejan.contacts.User;
 import me.angelovdejan.contacts.api.requests.CreateContactRequest;
 
 import me.angelovdejan.contacts.api.requests.FavoriteContactRequest;
+import me.angelovdejan.contacts.api.requests.SetCategoriesForContactRequest;
 import me.angelovdejan.contacts.api.requests.UpdateContactRequest;
 import me.angelovdejan.contacts.api.responses.CreatedContactResponse;
 import me.angelovdejan.contacts.api.responses.ItemsList;
@@ -24,10 +24,12 @@ import java.util.*;
 @Api(tags = "Contacts", description = "Managing the list of contacts")
 public class ContactsController {
 
-    private ContactsRepositoryInterface contactsRepository;
+    private final ContactsRepositoryInterface contactsRepository;
+    private final CategoriesRepositoryInterface categories;
 
-    public ContactsController(ContactsRepositoryInterface contactsRepository) {
+    public ContactsController(ContactsRepositoryInterface contactsRepository, CategoriesRepositoryInterface categories) {
         this.contactsRepository = contactsRepository;
+        this.categories = categories;
     }
 
     @PostMapping(path = "/")
@@ -128,5 +130,35 @@ public class ContactsController {
         Page<Contact> pageResult = this.contactsRepository.favoriteByOwner(owner, pageable);
 
         return ResponseEntity.ok(ItemsList.fromPage(pageResult));
+    }
+
+    @GetMapping(path = "/{id}/categories")
+    @ApiOperation(value = "Listing contact's categories")
+    public ResponseEntity<ItemsList<Category>> categories(@PathVariable String id) {
+        Optional<Contact> result = this.contactsRepository.findById(id);
+
+        if (result.isEmpty()) {
+            throw new ContactNotFoundException();
+        }
+
+        Contact contact = result.get();
+
+        return ResponseEntity.ok(ItemsList.fromItems(new ArrayList<>(contact.getCategories())));
+    }
+
+    @PostMapping(path = "/{id}/categories")
+    @ApiOperation(value = "Setting contact's categories")
+    public void setCategories(@PathVariable String id, @RequestBody SetCategoriesForContactRequest request) {
+        Optional<Contact> result = this.contactsRepository.findById(id);
+
+        if (result.isEmpty()) {
+            throw new ContactNotFoundException();
+        }
+
+        Contact contact = result.get();
+
+        contact.clearCategories();
+
+        categories.findByIdIn(request.categories).forEach(contact::addCategory);
     }
 }
