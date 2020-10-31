@@ -2,6 +2,7 @@ package me.angelovdejan.contacts.api.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -39,6 +40,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers("/swagger-resources/**").permitAll()
                     .antMatchers("/v2/api-docs").permitAll()
                     .antMatchers("/h2-console/**").permitAll()
+                    .antMatchers(HttpMethod.POST, "/users/").permitAll()
                     .anyRequest().authenticated()
                 .and()
                     .apply(jwtConfigurer);
